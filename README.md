@@ -26,7 +26,7 @@
 ### Install Dependencies
 
 ```bash
-pip install opencv-python ffmpeg-python
+pip install -r requirements.txt
 ```
 
 ### Install FFmpeg
@@ -76,6 +76,39 @@ python CliPlayer.py video.mp4 --fps 30
 3. Pixels are mapped to ASCII characters based on brightness
 4. Brightness-dependent Matrix Green ANSI colors are applied
 5. The ASCII frame is rendered in the terminal in real time
+
+## Building
+
+Build a standalone executable for your platform using PyInstaller.
+
+### Prerequisites
+
+```bash
+pip install pyinstaller
+```
+
+### Build Commands
+
+Run the build script on the target platform:
+
+```bash
+# Windows
+python build.py
+# Output: dist/cliplay.exe
+
+# Linux
+python build.py
+# Output: dist/cliplay.bin
+
+# macOS
+python build.py
+# Output: dist/cliplay.bin + dist/cliplay.dmg
+```
+
+Or use the platform shortcut scripts:
+
+- **Windows**: `build.bat`
+- **Linux/macOS**: `bash build.sh`
 
 ## License
 
