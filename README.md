@@ -13,7 +13,7 @@
 - ⏯️ Playback controls: pause, speed up, slow down, seek
 - 🔁 Loop mode for continuous playback
 - ⌨️ Keyboard-driven controls
-- 🖥️ Cross-platform: Windows, Linux, macOS
+ - 🖥️ Windows
 
 ## Requirements
 
@@ -79,7 +79,7 @@ python CliPlayer.py video.mp4 --fps 30
 
 ## Building
 
-Build a standalone executable for your platform using PyInstaller.
+Build a standalone Windows executable using PyInstaller.
 
 ### Prerequisites
 
@@ -87,28 +87,16 @@ Build a standalone executable for your platform using PyInstaller.
 pip install pyinstaller
 ```
 
-### Build Commands
-
-Run the build script on the target platform:
+### Build Command
 
 ```bash
-# Windows
 python build.py
-# Output: dist/cliplay.exe
-
-# Linux
-python build.py
-# Output: dist/cliplay.bin
-
-# macOS
-python build.py
-# Output: dist/cliplay.bin + dist/cliplay.dmg
+# Output: dist/CliPlayer.exe
 ```
 
-Or use the platform shortcut scripts:
+Or use the Windows shortcut script:
 
 - **Windows**: `build.bat`
-- **Linux/macOS**: `bash build.sh`
 
 ## License
 
