@@ -11,7 +11,7 @@ import sys
 
 
 def build_windows():
-    print("Building for Windows: cliplay.exe")
+    print("Building Cli Player 0.0.1 Alpha for Windows...")
     subprocess.run(
         [
             sys.executable,
@@ -20,18 +20,18 @@ def build_windows():
             "--onefile",
             "--console",
             "--name",
-            "cliplay",
-            "--icon",
-            "NONE",
+            "CliPlayer",
+            "--version-file",
+            "version.txt",
             "CliPlayer.py",
         ],
         check=True,
     )
-    print("Output: dist/cliplay.exe")
+    print("Output: dist/CliPlayer.exe")
 
 
 def build_linux():
-    print("Building for Linux: cliplay.bin")
+    print("Building Cli Player 0.0.1 Alpha for Linux...")
     subprocess.run(
         [
             sys.executable,
@@ -40,23 +40,20 @@ def build_linux():
             "--onefile",
             "--console",
             "--name",
-            "cliplay",
+            "cliplayer",
             "CliPlayer.py",
         ],
         check=True,
     )
-    # Rename to .bin
-    src = os.path.join("dist", "cliplay")
-    dst = os.path.join("dist", "cliplay.bin")
+    src = os.path.join("dist", "cliplayer")
+    dst = os.path.join("dist", "cliplayer.bin")
     if os.path.exists(src):
         shutil.move(src, dst)
         print(f"Output: {dst}")
-    elif os.path.exists(dst + ".exe"):
-        pass
 
 
 def build_macos():
-    print("Building for macOS: cliplay.app")
+    print("Building Cli Player 0.0.1 Alpha for macOS...")
     subprocess.run(
         [
             sys.executable,
@@ -65,39 +62,16 @@ def build_macos():
             "--onefile",
             "--console",
             "--name",
-            "cliplay",
+            "cliplayer",
             "CliPlayer.py",
         ],
         check=True,
     )
-    # Rename executable to .bin inside app or standalone
-    src = os.path.join("dist", "cliplay")
-    dst = os.path.join("dist", "cliplay.bin")
+    src = os.path.join("dist", "cliplayer")
+    dst = os.path.join("dist", "cliplayer.bin")
     if os.path.exists(src):
         shutil.move(src, dst)
         print(f"Output: {dst}")
-
-    # Create DMG
-    app_path = os.path.join("dist", "cliplay.app")
-    dmg_path = os.path.join("dist", "cliplay.dmg")
-    if os.path.exists(app_path):
-        print("Creating DMG...")
-        subprocess.run(
-            [
-                "hdiutil",
-                "create",
-                "-volname",
-                "CliPlayer",
-                "-srcfolder",
-                app_path,
-                "-ov",
-                "-format",
-                "UDZO",
-                dmg_path,
-            ],
-            check=True,
-        )
-        print(f"Output: {dmg_path}")
 
 
 def main():
