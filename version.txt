@@ -21,12 +21,12 @@ VSVersionInfo(
         u'040904B0',
         [StringStruct(u'CompanyName', u'S-Dev'),
         StringStruct(u'FileDescription', u'CliPlayer - Matrix ASCII CLI Video Player'),
-        StringStruct(u'FileVersion', u'0.0.1 Alpha'),
+        StringStruct(u'FileVersion', u'0.0.2 Alpha'),
         StringStruct(u'InternalName', u'CliPlayer'),
         StringStruct(u'LegalCopyright', u'Copyright (C) 2026 S-Dev'),
         StringStruct(u'OriginalFilename', u'CliPlayer.exe'),
         StringStruct(u'ProductName', u'CliPlayer'),
-        StringStruct(u'ProductVersion', u'0.0.1 Alpha')])
+        StringStruct(u'ProductVersion', u'0.0.2 Alpha')])
       ]
     ),
     VarFileInfo([VarStruct(u'Translation', [1033, 1200])])

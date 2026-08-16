@@ -168,8 +168,8 @@ def main():
                 dur_str = f"{duration:.1f}s" if duration else "N/A"
                 status = f"\033[1;32m[MATRIX PLAYER]\033[0m {path} | {pos:.1f}s / {dur_str} | Speed: {speed:.2f}x"
 
-                # \x1b[H აბრუნებს კურსორს დასაწყისში ეკრანის ციმციმის გარეშე
-                print(f"\x1b[H{ascii_frame}\n{status}")
+                # ეკრანის გასუფთავება და კურსორის საწყის პოზიციაზე განთავსება
+                print(f"\x1b[2J\x1b[H{ascii_frame}\n{status}")
 
             time.sleep(max(0.001, (1.0 / fps) / speed))
 
