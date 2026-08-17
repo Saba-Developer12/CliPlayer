@@ -19,27 +19,91 @@ if os.name == "nt":
     os.system("")
 
 
+def get_term_size():
+    if os.name == "nt":
+        try:
+            import ctypes
+            import msvcrt
+
+            kernel32 = ctypes.windll.kernel32
+            hConsole = msvcrt.get_osfhandle(sys.stdout.fileno())
+
+            if not hConsole or hConsole == -1:
+                raise ValueError("invalid stdout handle")
+
+            class COORD(ctypes.Structure):
+                _fields_ = [("X", ctypes.c_short), ("Y", ctypes.c_short)]
+
+            class SMALL_RECT(ctypes.Structure):
+                _fields_ = [
+                    ("Left", ctypes.c_short),
+                    ("Top", ctypes.c_short),
+                    ("Right", ctypes.c_short),
+                    ("Bottom", ctypes.c_short),
+                ]
+
+            class CONSOLE_SCREEN_BUFFER_INFO(ctypes.Structure):
+                _fields_ = [
+                    ("dwSize", COORD),
+                    ("dwCursorPosition", COORD),
+                    ("wAttributes", ctypes.c_ushort),
+                    ("srWindow", SMALL_RECT),
+                    ("dwMaximumWindowSize", COORD),
+                ]
+
+            csbi = CONSOLE_SCREEN_BUFFER_INFO()
+            if kernel32.GetConsoleScreenBufferInfo(hConsole, ctypes.byref(csbi)):
+                width = csbi.srWindow.Right - csbi.srWindow.Left + 1
+                height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1
+                if 10 <= width <= 400 and 5 <= height <= 200:
+                    return width, height
+        except Exception:
+            pass
+
+    size = shutil.get_terminal_size((80, 24))
+    return size.columns, size.lines
+
+
 def get_duration(path: str):
-    try:
-        probe = ffmpeg.probe(path)
-        return float(probe["format"]["duration"])
-    except Exception:
-        return None
+    cap = cv2.VideoCapture(path)
+    if cap.isOpened():
+        fps = cap.get(cv2.CAP_PROP_FPS) or 0.0
+        frames = cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0.0
+        cap.release()
+        if fps > 0 and frames > 0:
+            return frames / fps
+    return None
 
 
-def start_ffplay_audio(path: str, start_sec: float):
+def build_audio_filter(speed: float) -> str:
+    if speed <= 0:
+        return "atempo=1.0"
+    if 0.5 <= speed <= 2.0:
+        return f"atempo={speed:.4f}"
+    parts = []
+    remaining = speed
+    while remaining > 2.0:
+        parts.append("atempo=2.0")
+        remaining /= 2.0
+    if remaining < 0.5:
+        parts.append("atempo=0.5")
+    else:
+        parts.append(f"atempo={remaining:.4f}")
+    return ",".join(parts)
+
+
+def start_ffplay_audio(path: str, start_sec: float, speed: float):
     if not shutil.which("ffplay"):
         return None
     cmd = [
         "ffplay",
+        "-ss", str(start_sec),
+        "-i", path,
         "-vn",
         "-nodisp",
         "-autoexit",
-        "-loglevel",
-        "quiet",
-        "-ss",
-        str(start_sec),
-        path,
+        "-loglevel", "quiet",
+        "-af", build_audio_filter(speed),
     ]
     kwargs = {"stdout": subprocess.DEVNULL, "stderr": subprocess.DEVNULL}
     if hasattr(subprocess, "CREATE_NO_WINDOW"):
@@ -48,6 +112,15 @@ def start_ffplay_audio(path: str, start_sec: float):
         return subprocess.Popen(cmd, **kwargs)
     except Exception:
         return None
+
+
+def stop_ffplay_audio(proc):
+    if proc is None:
+        return
+    try:
+        proc.kill()
+    except Exception:
+        pass
 
 
 def frame_to_matrix_ascii(frame, term_w, term_h, chars=" .:-=+*#%@"):
@@ -85,7 +158,6 @@ def frame_to_matrix_ascii(frame, term_w, term_h, chars=" .:-=+*#%@"):
 def parse_args():
     p = argparse.ArgumentParser(description="Matrix ASCII Video Player")
     p.add_argument("file", help="ვიდეო ფაილის გზა")
-    p.add_argument("--matrix", action="store_true", default=True, help="Matrix Green ASCII რეჟიმი")
     p.add_argument("--loop", action="store_true", help="ვიდეოს უსასრულო გაფორმება")
     p.add_argument("--start", type=float, default=0.0, help="დაწყების დრო (წამებში)")
     p.add_argument("--fps", type=float, default=None, help="FPS-ის ხელით მითითება")
@@ -124,52 +196,60 @@ def main():
         def kb_get(): return sys.stdin.read(1)
 
     audio_proc = None
+    paused = False
+    speed = max(0.01, args.speed)
+    last_ascii_frame = ""
 
-    def audio_start(sec):
+    def audio_start(sec, spd):
         nonlocal audio_proc
         if args.no_audio: return
         if audio_proc:
-            try: audio_proc.kill()
-            except Exception: pass
-        audio_proc = start_ffplay_audio(path, sec)
+            stop_ffplay_audio(audio_proc)
+            audio_proc = None
+        audio_proc = start_ffplay_audio(path, sec, spd)
 
     def audio_stop():
         nonlocal audio_proc
         if audio_proc:
-            try: audio_proc.kill()
-            except Exception: pass
+            stop_ffplay_audio(audio_proc)
             audio_proc = None
 
     if not args.no_audio:
-        audio_start(args.start)
+        audio_start(args.start, speed)
 
     paused = False
     speed = max(0.01, args.speed)
+    last_ascii_frame = ""
 
     # ეკრანის გასუფთავება სტარტზე
-    print("\x1b[2J", end="")
+    sys.stdout.write("\x1b[2J")
+    sys.stdout.flush()
 
     try:
         while True:
+            term_w, term_h = get_term_size()
+
             if not paused:
                 ret, frame = cap.read()
                 if not ret:
                     if args.loop:
                         cap.set(cv2.CAP_PROP_POS_MSEC, args.start * 1000.0)
-                        if not args.no_audio: audio_start(args.start)
+                        if not args.no_audio:
+                            audio_start(args.start, speed)
                         continue
                     else:
                         break
 
-                term_size = shutil.get_terminal_size((80, 24))
-                ascii_frame = frame_to_matrix_ascii(frame, term_size.columns, term_size.lines)
+                last_ascii_frame = frame_to_matrix_ascii(frame, term_w, term_h)
 
-                pos = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
-                dur_str = f"{duration:.1f}s" if duration else "N/A"
-                status = f"\033[1;32m[MATRIX PLAYER]\033[0m {path} | {pos:.1f}s / {dur_str} | Speed: {speed:.2f}x"
+            ascii_frame = last_ascii_frame
 
-                # ეკრანის გასუფთავება და კურსორის საწყის პოზიციაზე განთავსება
-                print(f"\x1b[2J\x1b[H{ascii_frame}\n{status}")
+            pos = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
+            dur_str = f"{duration:.1f}s" if duration else "N/A"
+            status = f"\033[1;32m[MATRIX PLAYER]\033[0m {path} | {pos:.1f}s / {dur_str} | Speed: {speed:.2f}x"
+
+            sys.stdout.write(f"\x1b[2J\x1b[H{ascii_frame}\n{status}\n")
+            sys.stdout.flush()
 
             time.sleep(max(0.001, (1.0 / fps) / speed))
 
@@ -182,16 +262,21 @@ def main():
                     if paused:
                         audio_stop()
                     else:
-                        audio_start(cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0)
+                        audio_start(cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0, speed)
                 elif key in ('+', '='):
                     speed *= 1.1
+                    if not args.no_audio:
+                        audio_start(cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0, speed)
                 elif key == '-':
                     speed = max(0.01, speed / 1.1)
+                    if not args.no_audio:
+                        audio_start(cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0, speed)
 
     finally:
         cap.release()
         audio_stop()
-        print("\033[0m\x1b[2J")  # გასუფთავება გამოსვლისას
+        sys.stdout.write("\033[0m\x1b[2J")
+        sys.stdout.flush()  # გასუფთავება გამოსვლისას
 
 
 if __name__ == "__main__":

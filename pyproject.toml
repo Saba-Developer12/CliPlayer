@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cliplayer"
-version = "0.0.2a"
-description = "Cli Player - Matrix ASCII CLI Video Player (0.0.2 Alpha)"
+version = "0.0.3a"
+description = "Cli Player - Matrix ASCII CLI Video Player (0.0.3 Alpha)"
 readme = "README.md"
 requires-python = ">=3.6"
 license = {text = "MIT"}
