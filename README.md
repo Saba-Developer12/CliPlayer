@@ -53,7 +53,6 @@ python CliPlayer.py video.mp4 --fps 30
 | Flag | Description |
 |------|-------------|
 | `file` | Path to the video file |
-| `--matrix` | Matrix Green ASCII mode (default: on) |
 | `--loop` | Loop the video indefinitely |
 | `--start SECONDS` | Start playback at a specific time (seconds) |
 | `--fps FPS` | Override the frame rate |
