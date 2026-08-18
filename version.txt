@@ -5,8 +5,8 @@
 #
 VSVersionInfo(
   ffi=FixedFileInfo(
-    filevers=(0, 0, 3, 0),
-    prodvers=(0, 0, 3, 0),
+    filevers=(0, 0, 4, 0),
+    prodvers=(0, 0, 4, 0),
     mask=0x3f,
     flags=0x0,
     OS=0x4,
@@ -21,12 +21,12 @@ VSVersionInfo(
         u'040904B0',
         [StringStruct(u'CompanyName', u'S-Dev'),
         StringStruct(u'FileDescription', u'CliPlayer - Matrix ASCII CLI Video Player'),
-        StringStruct(u'FileVersion', u'0.0.3 Alpha'),
+        StringStruct(u'FileVersion', u'0.0.4 Alpha'),
         StringStruct(u'InternalName', u'CliPlayer'),
         StringStruct(u'LegalCopyright', u'Copyright (C) 2026 S-Dev'),
         StringStruct(u'OriginalFilename', u'CliPlayer.exe'),
         StringStruct(u'ProductName', u'CliPlayer'),
-        StringStruct(u'ProductVersion', u'0.0.3 Alpha')])
+        StringStruct(u'ProductVersion', u'0.0.4 Alpha')])
       ]
     ),
     VarFileInfo([VarStruct(u'Translation', [1033, 1200])])

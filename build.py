@@ -11,7 +11,7 @@ import sys
 
 
 def build_windows():
-    print("Building CliPlayer 0.0.3 Alpha for Windows...")
+    print("Building CliPlayer 0.0.4 Alpha for Windows...")
     subprocess.run(
         [
             sys.executable,
